@@ -194,7 +194,7 @@ def write_filtered_data(args, train_dy_metrics):
 
   original_train_file = os.path.join(os.path.join(args.data_dir, args.task_name), f"train.tsv")
   train_numeric, header = read_data(original_train_file, task_name=args.task_name, guid_as_int=True)
-
+ #  print(train_numeric.keys())
   for fraction in [0.01, 0.05, 0.10, 0.1667, 0.25, 0.3319, 0.50, 0.75]:
     outdir = os.path.join(args.filtering_output_dir,
                           f"cartography_{args.metric}_{fraction:.2f}/{args.task_name}")
@@ -207,13 +207,16 @@ def write_filtered_data(args, train_dy_metrics):
                   to_dir=outdir)
 
     num_samples = int(fraction * len(train_numeric))
+    print(num_samples)
     with open(os.path.join(outdir, f"train.tsv"), "w") as outfile:
       outfile.write(header + "\n")
       selected = sorted_scores.head(n=num_samples+1)
+      print(selected)
       if args.both_ends:
         hardest = sorted_scores.head(n=int(num_samples * 0.7))
         easiest = sorted_scores.tail(n=num_samples - hardest.shape[0])
         selected = pd.concat([hardest, easiest])
+        print(selected)
         fm = args.metric
         logger.info(f"Selecting both ends: {fm} = "
                     f"({hardest.head(1)[fm].values[0]:3f}: {hardest.tail(1)[fm].values[0]:3f}) "
@@ -224,7 +227,7 @@ def write_filtered_data(args, train_dy_metrics):
         selection_iterator.set_description(
           f"{args.metric} = {selected.iloc[idx][args.metric]:.4f}")
 
-        selected_id = selected.iloc[idx]["guid"]
+        selected_id = str(int(selected.iloc[idx]["guid"]))
         if args.task_name in ["SNLI", "MNLI"]:
           selected_id = int(selected_id)
         elif args.task_name == "WINOGRANDE":
@@ -394,7 +397,7 @@ if __name__ == "__main__":
   args = parser.parse_args()
 
   training_dynamics = read_training_dynamics(args.model_dir,
-                                             strip_last=True if args.task_name in ["QNLI"] else False,
+                                             strip_last=False,
                                              burn_out=args.burn_out if args.burn_out < 100 else None)
   total_epochs = len(list(training_dynamics.values())[0]["logits"])
   if args.burn_out > total_epochs:
