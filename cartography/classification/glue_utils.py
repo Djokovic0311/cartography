@@ -106,7 +106,7 @@ def adapted_glue_convert_examples_to_features(
             len_examples = len(examples)
         if ex_index % 10000 == 0:
             logger.info("Writing example %d/%d" % (ex_index, len_examples))
-
+        # print(example)
         inputs = tokenizer.encode_plus(example.text_a, example.text_b, add_special_tokens=True, max_length=max_length,)
         input_ids, token_type_ids = inputs["input_ids"], inputs["token_type_ids"]
 
